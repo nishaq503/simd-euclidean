@@ -6,8 +6,8 @@ edition = "2018"
 license = "MIT"
 
 [dev-dependencies]
-criterion = "0.2"
-rand = "0.6.5"
+criterion = "0.5.1"
+symagen = { path = "../SyMaGen" }
 
 [[bench]]
 name = "f32"

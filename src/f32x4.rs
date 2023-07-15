@@ -4,16 +4,22 @@ define_ty!(F32x4, f32, f32, f32, f32);
 impl_minimal!(F32x4, f32, 4, x0, x1, x2, x3);
 
 impl F32x4 {
-    pub fn from_slice(slice: &[f32]) -> F32x4 {
+    /// Create a new `F32x4` from a slice.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the slice is not at least 4 elements long.
+    pub fn from_slice(slice: &[f32]) -> Self {
         assert!(slice.len() >= Self::lanes());
-        unsafe {
-            F32x4(
-                *slice.get_unchecked(0),
-                *slice.get_unchecked(1),
-                *slice.get_unchecked(2),
-                *slice.get_unchecked(3),
-            )
-        }
+        Self(slice[0], slice[1], slice[2], slice[3])
+        // unsafe {
+        //     Self(
+        //         *slice.get_unchecked(0),
+        //         *slice.get_unchecked(1),
+        //         *slice.get_unchecked(2),
+        //         *slice.get_unchecked(3),
+        //     )
+        // }
     }
 
     pub fn horizontal_add(self) -> f32 {

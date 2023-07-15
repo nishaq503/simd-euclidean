@@ -1,21 +1,15 @@
 macro_rules! define_ty {
     ($id:ident, $($elem_tys:ident),+) => {
-        #[derive(Copy, PartialEq, Debug)]
+        #[derive(Copy, Clone, PartialEq, Debug)]
         #[allow(non_camel_case_types)]
         pub struct $id($($elem_tys),*);
-
-            impl Clone for $id {
-                #[inline]
-                fn clone(&self) -> Self {
-                    *self
-                }
-            }
     }
 }
 
 macro_rules! impl_minimal {
     ($id:ident, $elem_ty:ident, $elem_count:expr, $($elem_name:ident),+) => {
         impl $id {
+            #[allow(clippy::complexity)]
             #[inline]
             pub const fn new($($elem_name: $elem_ty),*) -> Self {
                 $id($($elem_name),*)

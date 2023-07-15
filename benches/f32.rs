@@ -1,38 +1,29 @@
 use criterion::*;
-use rand::*;
+use symagen::random_data;
+
 use simd_euclidean::*;
 
 fn bench_random(c: &mut Criterion) {
-    let mut rng = thread_rng();
-    let input_sizes = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+    let mut group = c.benchmark_group("SimdF32");
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
 
-    let mut inputs = Vec::new();
-    for &i in input_sizes.into_iter() {
-        let mut a = Vec::with_capacity(i);
-        let mut b = Vec::with_capacity(i);
+    for i in 0..=10 {
+        let dimensionality = 2_usize.pow(i);
+        let data = random_data::random_f32(2, dimensionality, -1e10, 1e10, 42);
+        let (x, y) = (&data[0], &data[1]);
 
-        for _ in 0..i {
-            a.push(rng.gen::<f32>());
-        }
-        for _ in 0..i {
-            b.push(rng.gen::<f32>());
-        }
+        let id = BenchmarkId::new("naive", dimensionality);
+        group.bench_with_input(id, &dimensionality, |b, _| {
+            b.iter(|| black_box(Naive::distance(x, y)))
+        });
 
-        inputs.push((i, a, b))
+        let id = BenchmarkId::new("simd", dimensionality);
+        group.bench_with_input(id, &dimensionality, |b, _| {
+            b.iter(|| black_box(Vectorized::distance(x, y)))
+        });
     }
 
-    c.bench(
-        "Random inputs f32",
-        ParameterizedBenchmark::new(
-            "Naive",
-            |b, i| b.iter(|| Naive::distance(black_box(&i.1), black_box(&i.2))),
-            inputs,
-        )
-        .with_function("Vectorized", |b, i| {
-            b.iter(|| Vectorized::distance(black_box(&i.1), black_box(&i.2)))
-        })
-        .throughput(|s| Throughput::Elements(s.0 as u32)),
-    );
+    group.finish();
 }
 
 criterion_group!(benches, bench_random);

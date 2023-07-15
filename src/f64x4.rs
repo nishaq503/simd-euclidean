@@ -4,16 +4,22 @@ define_ty!(F64x4, f64, f64, f64, f64);
 impl_minimal!(F64x4, f64, 4, x0, x1, x2, x3);
 
 impl F64x4 {
-    pub fn from_slice(slice: &[f64]) -> F64x4 {
+    /// Create a new `F64x4` from a slice.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the slice is not at least 4 elements long.
+    pub fn from_slice(slice: &[f64]) -> Self {
         assert!(slice.len() >= Self::lanes());
-        unsafe {
-            F64x4(
-                *slice.get_unchecked(0),
-                *slice.get_unchecked(1),
-                *slice.get_unchecked(2),
-                *slice.get_unchecked(3),
-            )
-        }
+        Self(slice[0], slice[1], slice[2], slice[3])
+        // unsafe {
+        //     F64x4(
+        //         *slice.get_unchecked(0),
+        //         *slice.get_unchecked(1),
+        //         *slice.get_unchecked(2),
+        //         *slice.get_unchecked(3),
+        //     )
+        // }
     }
 
     pub fn horizontal_add(self) -> f64 {

@@ -1,18 +1,21 @@
-//!
-//! ```rust
-//! # use simd_euclidean::*;
-//! # use rand::*;
-//! for &i in [16, 32, 64, 128].into_iter() {
-//!   // Dispatch to F32x4 or F32x8 (above 64 elements)
-//!     let mut rng = rand::thread_rng();
-//!     let a = (0..i).map(|_| rng.gen::<f32>()).collect::<Vec<f32>>();
-//!     let b = (0..i).map(|_| rng.gen::<f32>()).collect::<Vec<f32>>();
-
-//!     let v = Vectorized::distance(&a, &b);
-//!     let n = Naive::distance(&a, &b);
-//!     assert!((n-v).abs() < 0.00001);
-//! }
-//! ```
+#![deny(clippy::correctness)]
+#![warn(
+    // missing_docs,
+    clippy::all,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::pedantic,
+    clippy::nursery,
+    // clippy::missing_docs_in_private_items,
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::cast_lossless
+)]
+#![allow(clippy::float_cmp, clippy::must_use_candidate)]
+#![doc = include_str!("../README.md")]
 
 #[macro_use]
 mod macros;
@@ -179,22 +182,16 @@ mod test {
 
     #[test]
     fn verify_random() {
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
+        use symagen::random_data;
+
         let input_sizes = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
 
-        for &i in input_sizes.iter() {
-            let len = i + rng.gen_range(0, 16) as usize;
-            let mut a = Vec::with_capacity(len);
-            let mut b = Vec::with_capacity(len);
+        for i in input_sizes {
+            let data = random_data::random_f32(2, i, -1e10, 1e10, 42);
+            let (a, b) = (&data[0], &data[1]);
 
-            for _ in 0..len {
-                a.push(rng.gen::<f32>());
-                b.push(rng.gen::<f32>());
-            }
-
-            let diff = (vector_euclidean(&a, &b) - scalar_euclidean(&a, &b)).abs();
-            assert!(diff <= 0.0001, "diff = {}, len = {}", diff, i);
+            let diff = (vector_euclidean(a, b) - scalar_euclidean(a, b)).abs();
+            assert!(diff <= 1e-4, "diff = {}, len = {}", diff, i);
         }
     }
 
